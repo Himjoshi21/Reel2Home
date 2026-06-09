@@ -1,0 +1,2 @@
+user => food reels , view food item user register,login,logut
+food partner => list food items,same auth for this only 
