@@ -1,4 +1,5 @@
 const userModel = require("../models/user.model");
+const foodPartnerModel = require("../models/foodpartner.model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 async function registerUser(req,res){
@@ -13,24 +14,24 @@ async function registerUser(req,res){
         })
     }
     const hashedPassword = await bcrypt.hash(password,10);
-    const User = await userModel.create({
-        FullName,
+    const user = await userModel.create({
+        fullName:fullName,
         email,
         password:hashedPassword
     })
 
     const token = jwt.sign({
-        id:User._id,
+        id:user._id,
 
-    },"09549538786a39c469fb0d1fe64ced7e")
+    },process.env.JWT_SECRET)
     res.cookie("token",token)
 
     res.status(201).json({
         message:"User registerd successsfully",
-        User:{
-            _id:User._id,
-            email:User.email,
-            FullName:User.FullName
+        user:{
+            _id:user._id,
+            email:user.email,
+            fullName:user.fullName
 
         }
 
@@ -44,10 +45,125 @@ async function registerUser(req,res){
 }
 
 async function loginUser(req,res){
+    const {email,password} = req.body;
+    const user = await userModel.findOne({
+        email
+    })
 
+    if(!user){
+        res.status(400).json({
+            message:"Invalid email or password"
+        })
+    }
+    const isPasswordVaild = await bcrypt.compare(password,user.password);
+    if(!isPasswordVaild){
+        return res.status(400).json({
+            message:"Invalid email or password"
+        })
+        
+    }
+
+    const token = jwt.sign({
+        id:user._id
+    },
+    process.env.JWT_SECRET)
+    res.cookie("token",token)
+
+    res.status(200).json({
+        message:"User logged in successfully",
+        user:{
+            _id:user._id,
+            email:user.email,
+            fullName:user.fullName
+        }
+    })
+
+}
+
+async function logoutUser(req,res){
+    res.clearCookie("token");
+    res.status(200).json({
+        message:"User logged out successfully"
+    });
+
+}
+
+async function registerFoodPartner(req,res){
+    const {name,email,password} = req.body;
+    const isFoodPartnerExist = await foodPartnerModel.findOne({
+        email
+    })
+    if(isFoodPartnerExist){
+        return res.status(400).json({
+            message:"Food partner already exists"
+        })
+
+    }
+    const hashedPassword = await bcrypt.hash(password,10);
+    const foodPartner = await foodPartnerModel.create({
+        name,
+        email,
+        password:hashedPassword
+    })
+    const token = jwt.sign({
+        id:foodPartner._id
+    },process.env.JWT_SECRET)
+
+res.cookie("token",token)
+res.status(201).json({
+    message:"Food partner registered successfully",
+    foodPartner:{
+        _id:foodPartner._id,
+        name:foodPartner.name,
+        email:foodPartner.email
+    }
+})
+}
+
+async function loginFoodPartner(req,res){
+    const {email,password} = req.body;
+    const foodPartner = await foodPartnerModel.findOne({
+        email
+    })
+
+    if(!foodPartner){
+        return res.status(400).json({
+            message:"Invalid email or password"
+        })
+    }
+    const isPasswordValid = await bcrypt.compare(password,foodPartner.password);
+    if(!isPasswordValid){
+        return res.status(400).json({
+            message:"Invalid email or password"
+        })
+    }
+
+    const token = jwt.sign({
+        id:foodPartner._id
+    },process.env.JWT_SECRET)
+    res.cookie("token",token)
+
+    res.status(200).json({
+        message:"Food partner logged in successfully",
+        foodPartner:{
+            _id:foodPartner._id,
+            name:foodPartner.name,
+            email:foodPartner.email
+        }
+    })
+}
+async function logoutFoodPartner(req,res){
+    res.clearCookie("token");
+    res.status(200).json({
+        message:"Food partner logged out successfully"
+    });
 }
 
 module.exports = {
     registerUser,
-    loginUser
+    loginUser,
+    logoutUser,
+    registerFoodPartner,
+    loginFoodPartner,
+    logoutFoodPartner
 }

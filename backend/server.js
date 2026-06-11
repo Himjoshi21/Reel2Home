@@ -1,5 +1,6 @@
 // to start server this file is used. It imports the app and listens on a specified port.
 const express = require('express');
+require("dotenv").config();
 const app = require("./src/app");
 const connectDB = require("./src/db/db");
 connectDB();
