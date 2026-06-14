@@ -2,9 +2,10 @@ const userModel = require("../models/user.model");
 const foodPartnerModel = require("../models/foodpartner.model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+
 async function registerUser(req,res){
 
-    const {FullName,email,password} = req.body;
+    const {fullName,email,password} = req.body;
     const isUserExist = await userModel.findOne({
         email
     })
@@ -15,7 +16,7 @@ async function registerUser(req,res){
     }
     const hashedPassword = await bcrypt.hash(password,10);
     const user = await userModel.create({
-        fullName:fullName,
+        fullName,
         email,
         password:hashedPassword
     })
@@ -89,7 +90,7 @@ async function logoutUser(req,res){
 }
 
 async function registerFoodPartner(req,res){
-    const {name,email,password} = req.body;
+    const {name,email,password,phone,address,contactName} = req.body;
     const isFoodPartnerExist = await foodPartnerModel.findOne({
         email
     })
@@ -103,7 +104,10 @@ async function registerFoodPartner(req,res){
     const foodPartner = await foodPartnerModel.create({
         name,
         email,
-        password:hashedPassword
+        password:hashedPassword,
+        phone,
+        address,
+        contactName
     })
     const token = jwt.sign({
         id:foodPartner._id
@@ -115,7 +119,11 @@ res.status(201).json({
     foodPartner:{
         _id:foodPartner._id,
         name:foodPartner.name,
-        email:foodPartner.email
+        email:foodPartner.email,
+        address:foodPartner.address,
+        contactName:foodPartner.contactName,
+        phone: foodPartner.phone
+
     }
 })
 }
@@ -152,6 +160,7 @@ async function loginFoodPartner(req,res){
         }
     })
 }
+
 async function logoutFoodPartner(req,res){
     res.clearCookie("token");
     res.status(200).json({
