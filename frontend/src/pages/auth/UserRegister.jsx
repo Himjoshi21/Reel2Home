@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import '../../styles/auth-shared.css';
-import axios from 'axios';
+import apiClient from '../../api/axiosClient';
 import { useNavigate } from 'react-router-dom';
 
 const UserRegister = () => {
@@ -19,15 +19,11 @@ const UserRegister = () => {
         // Basically here send the data from frontend to backend and backend is storing this data to the database 
         // basically we can use axios for different puropose like get,put,post and it will be behave according to the requirement of the user
 
-        const response = await axios.post("http://localhost:3000/api/auth/user/register", {
-            fullName: firstName + " " + lastName,
+        const response = await apiClient.post('/api/auth/user/register', {
+            fullName: firstName + ' ' + lastName,
             email,
             password
-        },
-        // to save token in cookies we use this   
-        {
-            withCredentials: true
-        })
+        });
 
         console.log(response.data);
 

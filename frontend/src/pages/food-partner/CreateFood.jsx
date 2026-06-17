@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import axios from 'axios';
+import apiClient from '../../api/axiosClient';
 import '../../styles/create-food.css';
 import { useNavigate } from 'react-router-dom';
 
@@ -54,12 +54,10 @@ const CreateFood = () => {
 
         formData.append('name', name);
         formData.append('description', description);
-        formData.append("video", videoFile);
+        formData.append('video', videoFile);
 
-        const response = await axios.post("http://localhost:3000/api/food", formData, {
-            withCredentials: true,
-        })
- 
+        const response = await apiClient.post('/api/food', formData);
+
         console.log(response.data);
         navigate("/"); // Redirect to home or another page after successful creation
         // Optionally reset

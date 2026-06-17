@@ -1,57 +1,56 @@
-import React, { useEffect, useState } from 'react'
-import axios from 'axios';
-import '../../styles/reels.css'
-import ReelFeed from '../../components/ReelFeed'
+import React, { useEffect, useState } from 'react';
+import apiClient from '../../api/axiosClient';
+import '../../styles/reels.css';
+import ReelFeed from '../../components/ReelFeed';
 
 const Home = () => {
-    const [ videos, setVideos ] = useState([])
+    const [ videos, setVideos ] = useState([]);
+    const [ error, setError ] = useState('');
     // Autoplay behavior is handled inside ReelFeed
 
     useEffect(() => {
-        axios.get("http://localhost:3000/api/food", { withCredentials: true })
+        apiClient.get('/api/food')
             .then(response => {
-
-                console.log(response.data);
-
-                setVideos(response.data.foodItems)
+                setVideos(response.data.foodItems);
             })
-            .catch(() => { /* noop: optionally handle error */ })
-    }, [])
+            .catch(() => {
+                setError('Unable to load reels. Please try again.');
+            });
+    }, []);
 
     // Using local refs within ReelFeed; keeping map here for dependency parity if needed
 
     async function likeVideo(item) {
-
-        const response = await axios.post("http://localhost:3000/api/food/like", { foodId: item._id }, {withCredentials: true})
-
-        if(response.data.like){
-            console.log("Video liked");
-            setVideos((prev) => prev.map((v) => v._id === item._id ? { ...v, likeCount: v.likeCount + 1 } : v))
-        }else{
-            console.log("Video unliked");
-            setVideos((prev) => prev.map((v) => v._id === item._id ? { ...v, likeCount: v.likeCount - 1 } : v))
+        try {
+            const response = await apiClient.post('/api/food/like', { foodId: item._id });
+            const increment = response.data.like ? 1 : -1;
+            setVideos((prev) => prev.map((v) => v._id === item._id ? { ...v, likeCount: (v.likeCount ?? 0) + increment } : v));
+        } catch {
+            setError('Unable to update like state.');
         }
-        
     }
 
     async function saveVideo(item) {
-        const response = await axios.post("http://localhost:3000/api/food/save", { foodId: item._id }, { withCredentials: true })
-        
-        if(response.data.save){
-            setVideos((prev) => prev.map((v) => v._id === item._id ? { ...v, savesCount: v.savesCount + 1 } : v))
-        }else{
-            setVideos((prev) => prev.map((v) => v._id === item._id ? { ...v, savesCount: v.savesCount - 1 } : v))
+        try {
+            const response = await apiClient.post('/api/food/save', { foodId: item._id });
+            const increment = response.data.save ? 1 : -1;
+            setVideos((prev) => prev.map((v) => v._id === item._id ? { ...v, savesCount: (v.savesCount ?? 0) + increment } : v));
+        } catch {
+            setError('Unable to update save state.');
         }
     }
 
     return (
-        <ReelFeed
-            items={videos}
-            onLike={likeVideo}
-            onSave={saveVideo}
-            emptyMessage="No videos available."
-        />
-    )
+        <>
+            {error && <div className="page-error" role="alert">{error}</div>}
+            <ReelFeed
+                items={videos}
+                onLike={likeVideo}
+                onSave={saveVideo}
+                emptyMessage="No videos available."
+            />
+        </>
+    );
 }
 
 export default Home

@@ -1,11 +1,12 @@
 // to start server this file is used. It imports the app and listens on a specified port.
-const express = require('express');
 require("dotenv").config();
 const app = require("./src/app");
 const connectDB = require("./src/db/db");
+const port = process.env.PORT || 3000;
+
 connectDB();
-app.use(express.json());
-app.listen(3000,()=>{
-    console.log("Server is running on port 3000");
-})
+
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+});
 
